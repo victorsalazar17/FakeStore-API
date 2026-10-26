@@ -72,3 +72,68 @@ const pintarCards = (productos) => {
 
     contenedorProductos.innerHTML = tarjetas;
 };
+
+
+
+// ===========  CONSULTAR UN PRODUCTO POR SU ID (GET SINGLE PRODUCT) =========== 
+// Se ejecuta al hacer click en el botón "Ver detalles" 
+
+const obtenerProducto = async (id) => {
+  // Abrimos con un mensaje de carga mientras llega la respuesta
+    tituloProducto.textContent = "Cargando...";
+    detalleProducto.innerHTML = "";
+    ventanaProducto.show();
+
+    try {
+        const respuesta = await fetch(`${API_URL}/${id}`);
+
+        // Comprobamos que la petición fue exitosa antes de leer los datos
+        if (!respuesta.ok) {
+            throw new Error(`Error HTTP ${respuesta.status}`);
+        }
+
+        const producto = await respuesta.json();
+        mostrarDetalle(producto);
+    }   catch (error) {
+        console.error(error);
+        tituloProducto.textContent = "Error";
+        detalleProducto.innerHTML = '<p class="text-danger">No se pudo cargar el producto.</p>';
+    }
+};
+
+// =========== MOSTRAR LOS DETALLES DEL PRODUCTO EN EL MODAL =========== 
+const mostrarDetalle = (producto) => {
+    // Actualizamos el título del modal con el nombre del producto.
+    tituloProducto.textContent = producto.title;
+
+    // Construimos el contenido con la imagen, categoría, precio y descripción.
+    detalleProducto.innerHTML = `
+        <div class="row align-items-center">
+        <div class="col-md-5 text-center mb-3 mb-md-0">
+            <img src="${producto.image}" class="img-fluid"
+            style="max-height: 300px;"
+            alt="${producto.title}">
+        </div>
+        <div class="col-md-7">
+            <span class="badge text-bg-secondary mb-2">${producto.category}</span>
+            <h3 class="text-primary">${formatoPrecio.format(producto.price)}</h3>
+            <p>${producto.description}</p>
+        </div>
+        </div>
+    `;
+};
+
+
+// ===========  DETECTAR LOS CLICS EN LOS BOTONES "VER DETALLES" =========== 
+// Un solo listener para todos los botones
+
+contenedorProductos.addEventListener("click", (evento) => {
+  // Buscamos si el click fue en un botón que tenga data-id
+    const boton = evento.target.closest("button[data-id]");
+    if (boton) obtenerProducto(boton.dataset.id);
+});
+
+
+//  ===========  INICIAR LA APLICACIÓN  =========== 
+
+obtenerProductos();
